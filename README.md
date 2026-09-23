@@ -2,7 +2,16 @@
 
 This is a careful, testable reproduction of [Self-RAG](https://arxiv.org/abs/2310.11511) (Asai et al., 2023). It includes an eval harness that matches the original code item by item, a single-GPU trainer, and a list of problems in the original release that change how its numbers should be read.
 
-**Status:** everything that can be checked on a CPU is built and tested. **No GPU results yet.** The numbers below are the paper's targets, not ours.
+**Status:** Phase 1 is done. The released 7B checkpoint **reproduces all four benchmarks within 0.5 points**, run on free Kaggle GPUs. Full details are in [RESULTS.md](RESULTS.md).
+
+| Task | Ours | Paper | 95% margin |
+|---|---|---|---|
+| PopQA | 55.0 | 54.9 | ±2.6 |
+| TriviaQA | 66.2 | 66.4 | ±1.1 |
+| PubHealth | 71.9 | 72.4 | ±2.8 |
+| ARC-Challenge | 67.3 | 67.3 | ±2.7 |
+
+**Key finding:** with the threshold code as released, "adaptive" retrieval retrieved on **100% of questions in every task**. The paper's adaptive numbers are really always-retrieve numbers. The paper's own formula skips retrieval on up to 88% of questions (ARC) for at most 0.9 points.
 
 ## What's wrong in the original release
 
@@ -56,19 +65,14 @@ Kaggle's weekly GPU quota is about 30 hours. Training doesn't fit on T4s; see NO
 | `train_generator.py` | bf16 LoRA trainer with trainable reflection-token rows, per-class reflection accuracy, resume, merge |
 | `kaggle_phase1.sh` | The Kaggle runner above |
 | `setup_data.sh` | Fetches and verifies the inputs |
+| `RESULTS.md` | Phase 1 results, retrieval-policy comparison, resolved predictions |
 | `NOTES.md` | Pre-registered predictions, deviations from the original, findings, runbook |
 | `PLAN-revised.md` | The phase plan, with the evidence behind each change |
 | `LANDSCAPE.md` | Existing RAG critics, gating research and licensing, with sources |
 
-## Targets (paper, Table 2, Self-RAG 7B)
-
-| PopQA | TriviaQA | PubHealth | ARC-Challenge |
-|---|---|---|---|
-| 54.9 | 66.4 | 72.4 | 67.3 |
-
 ## Roadmap
 
-1. **Phase 1:** run the released 7B on the four tasks. Does it reproduce, and under which threshold formula?
+1. ~~**Phase 1:** run the released 7B on the four tasks.~~ Done: it reproduces; see [RESULTS.md](RESULTS.md).
 2. **Phase 3:** train a generator on 30k rows with LoRA on one GPU. How far behind the released model does it land?
 3. **Explain the gap.** Independent reruns and GitHub issues don't match the paper ([FlashRAG](https://github.com/RUC-NLPIR/FlashRAG), [#57](https://github.com/AkariAsai/self-rag/issues/57), [#71](https://github.com/AkariAsai/self-rag/issues/71)). Publish which factor accounts for which points.
 4. **Then, only if it clears the bar:** a permissively licensed ≤2B critic that judges, after retrieval, whether the context is sufficient and whether each sentence is supported, with calibrated scores and CPU latency. See [LANDSCAPE.md](LANDSCAPE.md) for what already exists and why a pre-retrieval gate isn't worth building.
