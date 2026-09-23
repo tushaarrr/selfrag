@@ -65,6 +65,7 @@ Eval (outputs identical by construction, checked by `test_eval_selfrag.py` again
 - **Both branches generated for every item:** the no-retrieval continuation and the retrieval branch are generated for every item, then decided offline. That is about 9% more tokens.
 - **Batched across items**, in `--chunk` items per vLLM call. fp16 batching can flip rare near-tie greedy tokens.
 - **Empty predictions:** the reference crashes on an empty prediction (`run_short_form.py:331`). We continue and set `empty_pred`.
+- **vLLM engine settings:** `max_parallel_loading_workers=1`, `swap_space=0` and `enforce_eager=True`. They fit 2× T4 on a 30GB-RAM host. They change memory use and speed only, not the math. With `swap_space=0`, greedy decoding with one output per prompt re-runs a preempted sequence instead of swapping it out. The values are recorded in each run's manifest.
 
 Training (`train_generator.py`):
 
