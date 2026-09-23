@@ -8,3 +8,5 @@ numpy==1.26.4
 sentencepiece
 protobuf
 ray==2.9.0  # vllm 0.2.6 era (Dec 2023); needed for --tp 2
+setuptools==69.5.1  # ray 2.9 imports pkg_resources; uv venvs have no setuptools, and >=81 dropped pkg_resources
+pyarrow==14.0.2  # ray 2.9 uses pyarrow.PyExtensionType, removed in newer pyarrow

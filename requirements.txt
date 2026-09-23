@@ -83,6 +83,7 @@ numpy==1.26.4
     #   accelerate
     #   pandas
     #   peft
+    #   pyarrow
     #   transformers
     #   vllm
     #   xformers
@@ -139,8 +140,10 @@ psutil==7.2.2
     #   accelerate
     #   peft
     #   vllm
-pyarrow==25.0.1
-    # via vllm
+pyarrow==14.0.2
+    # via
+    #   -r requirements.in
+    #   vllm
 pydantic==1.10.13
     # via
     #   fastapi
@@ -189,6 +192,8 @@ sentencepiece==0.2.2
     # via
     #   -r requirements.in
     #   vllm
+setuptools==69.5.1
+    # via -r requirements.in
 six==1.17.0
     # via python-dateutil
 starlette==0.50.0
