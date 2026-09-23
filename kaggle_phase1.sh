@@ -18,6 +18,7 @@ uv venv -q --python 3.10 /tmp/venv    # Kaggle's Python is 3.12; vllm 0.2.6 ship
 # jsonlines: the reference code the tests run imports it.
 uv pip install -q --python /tmp/venv/bin/python -r requirements.txt pytest jsonlines
 export PATH=/tmp/venv/bin:$PATH HF_HOME=/tmp/hf   # keep the 13.5GB of weights out of /kaggle/working
+export RAY_memory_monitor_refresh_ms=0            # Ray counts reclaimable page cache as used and kills workers
 ./setup_data.sh >/dev/null
 python -m pytest -q -p no:cacheprovider test_eval_selfrag.py
 if [ -n "$PREV" ]; then mkdir -p runs && cp -rn "$PREV/." runs/; fi
