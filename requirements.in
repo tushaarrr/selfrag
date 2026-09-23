@@ -1,0 +1,10 @@
+# One env for eval (Phase 1/4) and training (Phase 3). Python 3.10, CUDA 12.1 driver or newer.
+vllm==0.2.6
+torch==2.1.2
+transformers==4.36.2
+peft==0.7.1
+accelerate==0.25.0
+numpy==1.26.4
+sentencepiece
+protobuf
+ray==2.9.0  # vllm 0.2.6 era (Dec 2023); needed for --tp 2
