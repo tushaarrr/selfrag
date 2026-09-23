@@ -22,15 +22,14 @@ All four policies are scored from the same single generation pass (see `eval_sel
 | PopQA | 100% / 55.0 | 89.6% / 54.1 | 55.0 | 28.7 |
 | TriviaQA | 100% / 66.2 | 95.1% / 65.6 | 66.2 | 50.3 |
 | PubHealth | 100% / 71.9 | 98.1% / 71.6 | 71.9 | 70.1 |
-| ARC-Challenge | 100% / 67.3 | 12.2% / 67.0 | 67.3 | —* |
-
-\*ARC's "never" row was cut off in the log excerpt; it is in `runs/released/summary.jsonl`.
+| ARC-Challenge | 100% / 67.3 | 12.2% / 67.0 | 67.3 | 67.3 |
 
 ## Findings
 
 1. **"Adaptive" retrieval never skipped retrieval.** Under the released threshold code, which divides log-probabilities (`run_short_form.py:80`), the model retrieved on **100% of questions in all four tasks**. Its scores are identical to always-retrieve. So the paper's adaptive-retrieval numbers are in effect always-retrieve numbers.
 2. **The paper's own formula saves retrieval at almost no cost.** Applying 0.2 to probabilities, as the paper describes, skips retrieval on 5-10% of open-domain questions and on **88% of ARC questions**. Accuracy drops by at most 0.9 points on any task.
-3. **Retrieval matters very unevenly.** It adds +26.3 points on PopQA and +15.9 on TriviaQA, but only +1.8 on PubHealth.
+3. **Retrieval matters very unevenly.** It adds +26.3 points on PopQA and +15.9 on TriviaQA, only +1.8 on PubHealth, and **0.0 on ARC-Challenge**: never-retrieve and always-retrieve both score 67.3. On ARC, Self-RAG's score comes entirely from the model itself.
+7. **The run is deterministic.** A second ARC run in a fresh session (2026-09-23 17:59) reproduced every number exactly: 67.3 / 67.0 / 68.8 / 68.3.
 4. **Substring leniency doesn't inflate ARC.** Strict letter accuracy is 68.8, so `match` − strict = **−1.5**. The lenient metric actually *loses* points on the 22 questions with numeric gold keys.
 5. **TriviaQA 66.4 comes from the 7,313-item `*_w_gs` file**, the one with Google-search passages at positions 5-9, not the 11,313-item plain file. The plan had flagged this as undeterminable from the repo (PLAN-revised #15).
 6. **So where do the reported reproduction gaps come from?** The released checkpoint reproduces under the pinned 2023 stack. The gaps reported by independent reruns ([FlashRAG](https://github.com/RUC-NLPIR/FlashRAG)) and by retraining attempts ([#57](https://github.com/AkariAsai/self-rag/issues/57), [#71](https://github.com/AkariAsai/self-rag/issues/71)) therefore come from differences in eval setup (metric, passages, inference stack) or from training, not from the checkpoint itself. Phase 3 tests the training side.
