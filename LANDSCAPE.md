@@ -20,6 +20,12 @@ The question: is a small, open "RAG critic" worth building? It would answer, for
 | [CRAG evaluator](https://github.com/HuskyInSalt/CRAG) | T5 | open | Relevance only; last update 2024-10 |
 | [Tiny-Critic RAG](https://arxiv.org/html/2603.00846) | Qwen3-1.7B LoRA | no weights found | Binary pass/fail relevance gate |
 
+**Self-RAG-style critics that already exist:**
+- **[sms1097's four DistilBERT classifiers](https://huggingface.co/sms1097/support_model)** (67M each, MIT, Feb 2024). One classifier per token (Retrieve / IsRel / IsSup / IsUse), trained on a [flattened copy](https://huggingface.co/datasets/sms1097/self_rag_tokens_train_data) of the Self-RAG data. They report accuracy only on their own split and have about 1k downloads.
+- **The paper's FLAN-3B critic was never released.** Agreement with GPT-4 labels (Retrieve / IsSup / IsRel / IsUse): 85.6 / 73.1 / 82.0 / 72.1, vs 93.8 / 93.5 / 80.2 / 73.5 for the 7B ([paper appendix](https://arxiv.org/pdf/2310.11511)).
+- **Small RAG critics with *other* label sets:** [RAG-Critic-3B](https://huggingface.co/dongguanting/RAG-Critic-3B) (error taxonomy; its dataset is CC BY-NC), Tiny-Critic (no weights), CRITIC-R1.
+- **These are baselines any new critic must beat.**
+
 **Verdict:** relevance ranking is well served, for free. "Is this context *sufficient* to answer the question?" is not.
 
 ## 3. Is each sentence supported by the passages?
