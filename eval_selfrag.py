@@ -258,17 +258,18 @@ def score(task_name, run_dir, threshold, w_rel, w_sup, w_use):
         with open(Path(run_dir) / f"{task_name}.{formula}.scored.jsonl", "w") as f:
             f.writelines(json.dumps(x) + "\n" for x in scored)
         acc = 100 * np.mean([x["match"] for x in scored])
+        ci95 = 196 * math.sqrt(acc / 100 * (1 - acc / 100) / len(scored))  # normal approx., in points
         st = [x["strict"] for x in scored if x["strict"] is not None]
         rows.append(dict(task=task_name, formula=formula, n=len(scored), complete=len(scored) == len(items),
                          retrieval_rate=round(100 * np.mean([x["do_retrieve"] for x in scored]), 1),
-                         match=round(acc, 1), strict=round(100 * np.mean(st), 1) if st else None,
+                         match=round(acc, 1), ci95=round(ci95, 1), strict=round(100 * np.mean(st), 1) if st else None,
                          target=cfg["target"], diff=round(acc - cfg["target"], 1),
                          empty_preds=sum(x["empty_pred"] for x in scored),
                          threshold=threshold, w_rel=w_rel, w_sup=w_sup, w_use=w_use))
     with open(Path(run_dir) / "summary.jsonl", "a") as f:
         f.writelines(json.dumps(r) + "\n" for r in rows)
     for r in rows:
-        flag = "  <-- >2 pts off" if r["formula"] == "released" and abs(r["diff"]) > 2 else ""
+        flag = "  <-- >2 pts off" if r["formula"] == "released" and r["complete"] and abs(r["diff"]) > 2 else ""
         print(" ".join(f"{k}={v}" for k, v in r.items() if k not in ("w_rel", "w_sup")) + flag)
     return rows
 
