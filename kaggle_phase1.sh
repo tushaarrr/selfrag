@@ -11,8 +11,12 @@ LIMIT=${LIMIT:-}     # e.g. 50 for the pilot
 deadline=$((SECONDS + HOURS * 3600))
 
 pip install -q uv
-uv venv -q --python 3.10 /tmp/venv   # Kaggle's Python is 3.12; vllm 0.2.6 ships wheels up to 3.11
-VIRTUAL_ENV=/tmp/venv uv pip install -q -r requirements.txt pytest jsonlines  # jsonlines: the reference code the tests run imports it
+rm -rf /tmp/venv                      # a failed earlier run leaves one; newer uv would stop and prompt
+uv venv -q --python 3.10 /tmp/venv    # Kaggle's Python is 3.12; vllm 0.2.6 ships wheels up to 3.11
+/tmp/venv/bin/python -c 'import sys; assert sys.version_info[:2] == (3, 10), sys.version'
+# --python, not VIRTUAL_ENV: Kaggle sets UV_SYSTEM_PYTHON, which makes uv ignore VIRTUAL_ENV and target 3.12.
+# jsonlines: the reference code the tests run imports it.
+uv pip install -q --python /tmp/venv/bin/python -r requirements.txt pytest jsonlines
 export PATH=/tmp/venv/bin:$PATH HF_HOME=/tmp/hf   # keep the 13.5GB of weights out of /kaggle/working
 ./setup_data.sh >/dev/null
 python -m pytest -q -p no:cacheprovider test_eval_selfrag.py
