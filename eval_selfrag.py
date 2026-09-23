@@ -158,6 +158,7 @@ def generate(llm, items, max_new_tokens, out_path, chunk=32, limit=None):
                                     "cands": cands}) + "\n")
             f.write("".join(lines))  # one write per chunk
             f.flush()
+            del first, noret, ret  # free this chunk's logprob dicts before the next generate call
             el = time.time() - t0
             n = s + len(idxs)
             print(f"{n}/{len(todo)} items  {el:.0f}s  {n_tok / el:.0f} out tok/s  "
@@ -292,11 +293,15 @@ def main():
 
     items = load_items(a.task)
     n = len(items) if a.limit is None else min(a.limit, len(items))
+    # Host-RAM limits (Kaggle has 30GB): TP workers load the 10GB .bin shard one at a time, no pinned swap (greedy
+    # n=1 preempts by recompute, never swaps), and no CUDA graphs (host-memory leak with TP>1 in 0.2.6).
+    engine = dict(dtype="half", tensor_parallel_size=a.tp, max_parallel_loading_workers=1, swap_space=0,
+                  enforce_eager=True)
     write_manifest(out / f"{a.task}.manifest.json", model=a.model, task=a.task, cfg=cfg, limit=a.limit,
-                   chunk=a.chunk, tp=a.tp, dtype="half", input_sha256=sha256(DATA / cfg["file"]),
+                   chunk=a.chunk, engine=engine, input_sha256=sha256(DATA / cfg["file"]),
                    upper_bound_out_tokens=n * (cfg["ndocs"] + 1) * cfg["max_new_tokens"] + n)
     from vllm import LLM
-    llm = LLM(model=a.model, dtype="half", tensor_parallel_size=a.tp)
+    llm = LLM(model=a.model, **engine)
     tok = llm.get_tokenizer()
     assert all(tok.convert_tokens_to_ids(t) == i for t, i in TOK.items()), "reflection token ids differ"
     generate(llm, items, cfg["max_new_tokens"], out / f"{a.task}.gen.jsonl", a.chunk, a.limit)
