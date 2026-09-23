@@ -18,4 +18,4 @@ mkdir -p data/hf reference
   added_tokens.json config.json generation_config.json special_tokens_map.json tokenizer.model tokenizer_config.json \
   --local-dir data/hf/selfrag_llama2_7b
 
-(cd data && shasum -a 256 -c ../SHA256SUMS)
+cd data && if command -v sha256sum >/dev/null; then sha256sum -c ../SHA256SUMS; else shasum -a 256 -c ../SHA256SUMS; fi
