@@ -50,6 +50,14 @@ What I checked in the vLLM **source** (not run: no GPU here):
    - PubHealth: **−1** (−5 to +3)
 4. **PubHealth barely depends on retrieval** (50k ablation: no-retrieval 73.0 vs adaptive 73.5). The as-released and paper formulas land within 2 points of each other on PubHealth.
 
+**Resolved 2026-09-23 (Phase 1):**
+- 1: the as-released half ✅ (100% retrieval, +0.1); the paper-formula half ❌ (89.6% retrieval, only −0.9).
+- 2: ✅ (−1.5).
+- 3: pending.
+- 4: ✅ (0.3 apart).
+
+Details in RESULTS.md.
+
 ## Decisions (defaults taken; say if you want them changed)
 
 1. **Headline threshold:** as-released. It costs nothing to also report the paper formula, always-retrieve and never-retrieve, because `generate` produces both branches for every item and `score` prints all four.
