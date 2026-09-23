@@ -1,0 +1,12 @@
+# local links to ../self-rag inputs (fetch with setup_data.sh)
+/data
+/reference
+/paper
+/docs
+# outputs and envs
+/runs
+/dist
+.venv/
+__pycache__/
+.pytest_cache/
+.DS_Store
