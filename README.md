@@ -53,7 +53,7 @@ The released 7B model on 2× T4, all four tasks. The time estimates below are ro
    1. In a new version, click **Add Input** and pick the previous version's output. Pick one that finished with `runs/released` in it, not a failed one.
    2. Run `!find /kaggle/input -maxdepth 6 -type d -path '*/selfrag/runs'`. Kaggle now mounts outputs under `/kaggle/input/notebooks/<owner>/<notebook>/`.
    3. Run `!PREV=<printed path> bash selfrag/kaggle_phase1.sh`. Finished items are skipped.
-5. **Results** are in `runs/released/summary.jsonl`. Each scoring appends one row per task and retrieval policy (`released`, `paper`, `always`, `never`), with accuracy, retrieval rate and the gap to the paper. After a resume, read the last row per task and policy that has `complete: true`.
+5. **Results** are in `runs/released/summary.jsonl`, and the script also writes `/kaggle/working/runs.zip`. **Download it straight away.** An interactive session (the ▶ button) loses all its files when it stops or idles out; only "Save & Run All" versions keep their output. Each scoring appends one row per task and retrieval policy (`released`, `paper`, `always`, `never`), with accuracy, retrieval rate and the gap to the paper. After a resume, read the last row per task and policy that has `complete: true`.
 
 Kaggle's weekly GPU quota is about 30 hours. Training doesn't fit on T4s; see NOTES.md, "Where to run".
 

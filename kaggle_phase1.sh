@@ -32,3 +32,7 @@ for t in $TASKS; do
   if [ "$rc" -eq 124 ]; then echo "time limit hit during $t; run again with PREV set to resume"; break; fi
   if [ "$rc" -ne 0 ]; then exit "$rc"; fi
 done
+
+# One file to grab. Interactive sessions lose /kaggle/working when they stop; "Save & Run All" versions keep it.
+zip -qr /kaggle/working/runs.zip runs && echo "saved /kaggle/working/runs.zip; download it from the Output panel now"
+cat runs/released/summary.jsonl
