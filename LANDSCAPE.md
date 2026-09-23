@@ -36,8 +36,8 @@ The question: is a small, open "RAG critic" worth building? It would answer, for
 | [Granite Guardian 3.3](https://huggingface.co/ibm-granite/granite-guardian-3.3-8b) | 8B | Apache-2.0 | 76.5 | Also checks context relevance and answer relevance |
 | [FactCG-DeBERTa-L](https://huggingface.co/yaxili96/FactCG-DeBERTa-v3-Large) | 0.4B | MIT | 75.6 | Best ≤2B |
 | [MiniCheck-Flan-T5-L](https://github.com/Liyan06/MiniCheck) | 0.8B | Apache-2.0 | 75.0 | Last news Sept 2024 |
-| [HHEM-2.1-Open](https://huggingface.co/vectara/hallucination_evaluation_model) | 0.1B | open | — | Runs on CPU (~1.5 s per 2k tokens); built into [RAGAS](https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/faithfulness/) |
-| [LettuceDetect](https://github.com/KRLabsOrg/LettuceDetect) | 17M–2B | MIT | — | Flags unsupported spans; multilingual; active (v0.2.2, July 2026) |
+| [HHEM-2.1-Open](https://huggingface.co/vectara/hallucination_evaluation_model) | 0.1B | Apache-2.0 | 71.8 | Runs on CPU (~1.5 s per 2k tokens); built into [RAGAS](https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/faithfulness/) |
+| [LettuceDetect](https://github.com/KRLabsOrg/LettuceDetect) | 17M–2B | MIT / Apache-2.0 (v2) | — | Flags unsupported spans; multilingual; LangChain integration; active (pip 0.2.3, Aug 2026) |
 | [granitelib-rag](https://huggingface.co/ibm-granite/granitelib-rag-r1.0) | LoRAs on Granite 4 | Apache-2.0 | — | Per-sentence risk, answerability, relevance; needs the Granite base model |
 
 \*Average balanced accuracy, from the [leaderboard](https://llm-aggrefact.github.io/) and papers. The top score has barely moved since 2024.
@@ -47,6 +47,7 @@ The question: is a small, open "RAG critic" worth building? It would answer, for
 ## 4. Should this query retrieve at all?
 
 - **No maintained drop-in gate found:** there is no open, maintained "should I retrieve?" classifier that works with API LLMs.
+  - [Adaptive-RAG](https://github.com/starsuzi/Adaptive-RAG) never released its classifier, and it reported only 54.5% accuracy (30.5% on the "no retrieval" class). The only HF model named for retrieval necessity is a 6.7B Llama-2 model ([SlimPLM](https://huggingface.co/zstanjj/SlimPLM-Retrieval-Necessity-Judgment)).
   - The methods with good numbers need logprobs ([FLARE](https://arxiv.org/abs/2305.06983)), hidden states ([UAR](https://arxiv.org/html/2406.12534v2), [SeaKR](https://arxiv.org/abs/2406.19215), [DRAGIN](https://github.com/oneal2000/DRAGIN)), or RL-training the generator ([Search-R1](https://github.com/PeterGriffinJin/Search-R1)).
 - **The savings are small:**
   - A 35-method comparison ([ACL 2025](https://aclanthology.org/2025.acl-long.319/)) found simple uncertainty baselines as good as dedicated methods. The best skips about 19% of retrievals but nearly doubles LLM calls.
