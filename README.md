@@ -57,6 +57,7 @@ Kaggle's weekly GPU quota is about 30 hours. Training doesn't fit on T4s; see NO
 | `setup_data.sh` | Fetches and verifies the inputs |
 | `NOTES.md` | Pre-registered predictions, deviations from the original, findings, runbook |
 | `PLAN-revised.md` | The phase plan, with the evidence behind each change |
+| `LANDSCAPE.md` | Existing RAG critics, gating research and licensing, with sources |
 
 ## Targets (paper, Table 2, Self-RAG 7B)
 
@@ -68,6 +69,7 @@ Kaggle's weekly GPU quota is about 30 hours. Training doesn't fit on T4s; see NO
 
 1. **Phase 1:** run the released 7B on the four tasks. Does it reproduce, and under which threshold formula?
 2. **Phase 3:** train a generator on 30k rows with LoRA on one GPU. How far behind the released model does it land?
-3. **Next:** a small, standalone critic that works with any LLM, answering three questions: should this query retrieve, is this passage relevant, is this sentence supported? Details will follow once the landscape check is done.
+3. **Explain the gap.** Independent reruns and GitHub issues don't match the paper ([FlashRAG](https://github.com/RUC-NLPIR/FlashRAG), [#57](https://github.com/AkariAsai/self-rag/issues/57), [#71](https://github.com/AkariAsai/self-rag/issues/71)). Publish which factor accounts for which points.
+4. **Then, only if it clears the bar:** a permissively licensed ≤2B critic that judges, after retrieval, whether the context is sufficient and whether each sentence is supported, with calibrated scores and CPU latency. See [LANDSCAPE.md](LANDSCAPE.md) for what already exists and why a pre-retrieval gate isn't worth building.
 
 Contributions welcome, especially GPU runs of Phase 1. Please attach `runs/released/*.manifest.json` with any results.
