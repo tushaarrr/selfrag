@@ -34,16 +34,17 @@ The released 7B model on 2× T4, all four tasks. The time estimates below are ro
 1. On kaggle.com: **Create → New Notebook**. In the right panel, set **Accelerator = GPU T4 x2** and **Internet = On** (Internet needs a phone-verified account).
 2. **Pilot** (about 20-30 minutes). Run this in a cell:
    ```
-   !git clone -q https://github.com/tushaarrr/selfrag
+   !git -C selfrag pull -q || git clone -q https://github.com/tushaarrr/selfrag
    !LIMIT=50 TASKS=popqa bash selfrag/kaggle_phase1.sh
    ```
+   The first line updates an existing copy, or clones it the first time. Re-run both lines after any fix to the repo.
    It prints seconds per item and the projected hours for the full task.
-3. **Full run.** Change the cell to `!bash selfrag/kaggle_phase1.sh`, then click **Save Version → Save & Run All (Commit)**. It runs in the background for up to 11 hours and saves `/kaggle/working` as the version's output. You can close the browser.
+3. **Full run.** Keep the first line and change the second to `!bash selfrag/kaggle_phase1.sh`, then click **Save Version → Save & Run All (Commit)**. It runs in the background for up to 11 hours and saves `/kaggle/working` as the version's output. You can close the browser.
 4. **Resume**, if it stopped on the time limit:
-   1. In a new version, click **Add Input** and pick your notebook's previous output.
-   2. Run `!ls /kaggle/input` to find the folder name.
-   3. Run `!PREV=/kaggle/input/<name>/selfrag/runs bash selfrag/kaggle_phase1.sh`. Finished items are skipped.
-5. **Results** are in `runs/released/summary.jsonl`. For each task there's one row per retrieval policy (`released`, `paper`, `always`, `never`), with accuracy, retrieval rate and the gap to the paper.
+   1. In a new version, click **Add Input** and pick the previous version's output. Pick one that finished with `runs/released` in it, not a failed one.
+   2. Run `!find /kaggle/input -maxdepth 6 -type d -path '*/selfrag/runs'`. Kaggle now mounts outputs under `/kaggle/input/notebooks/<owner>/<notebook>/`.
+   3. Run `!PREV=<printed path> bash selfrag/kaggle_phase1.sh`. Finished items are skipped.
+5. **Results** are in `runs/released/summary.jsonl`. Each scoring appends one row per task and retrieval policy (`released`, `paper`, `always`, `never`), with accuracy, retrieval rate and the gap to the paper. After a resume, read the last row per task and policy that has `complete: true`.
 
 Kaggle's weekly GPU quota is about 30 hours. Training doesn't fit on T4s; see NOTES.md, "Where to run".
 
