@@ -61,9 +61,12 @@ The question: is a small, open "RAG critic" worth building? It would answer, for
   - `selfrag_train_data` is labeled MIT, but its reflection tokens are outputs of a **Llama 2** critic trained on **GPT-4** labels.
   - The Llama 2 license says: "You will not use … any output or results of the Llama Materials to improve any other large language model" ([license](https://raw.githubusercontent.com/meta-llama/llama-models/main/models/llama2/LICENSE)).
   - OpenAI's terms forbid using output "to develop models that compete" ([services agreement](https://openai.com/policies/services-agreement/)). That binds the party that called the API; no ruling on downstream users was found.
+- **44% of the rows come from non-commercial sources:** 64,727 of 145,619 are gpt4_alpaca (26,168), stanford_alpaca (25,153) or sharegpt (13,406). Their datasets are CC BY-NC or come from scraped ChatGPT text ([Alpaca](https://github.com/tatsu-lab/stanford_alpaca), [GPT-4-LLM](https://github.com/Instruction-Tuning-with-GPT-4/GPT-4-LLM)). Counted from the `dataset_name` field. Dropping them leaves 80,892 rows (FLAN, OASST1, WoW, NQ, FEVER, ASQA, OBQA, ARC-Easy); some of those are CC BY-SA.
 - **Clean path:**
   - Keep the Self-RAG *prompts, schema and passages*, which are MIT code.
-  - **Relabel** with an Apache-2.0 teacher such as Qwen3, and train an Apache/MIT student (Qwen3-0.6B/1.7B, SmolLM, ModernBERT or DeBERTa-v3).
+  - Drop the non-commercial rows above.
+  - **Relabel** with an Apache-2.0 teacher such as Qwen3-32B or gpt-oss. Not Qwen2.5-3B/72B, which use the "qwen" license with a "Built with Qwen" requirement.
+  - Train an Apache/MIT student (Qwen3-0.6B/1.7B, SmolLM2, ModernBERT or DeBERTa-v3).
   - Use the Self-RAG labels only to check agreement internally.
   - Avoid Gemma (distillation creates a "Model Derivative") and Llama 3.2 (naming and attribution terms) as students.
 
