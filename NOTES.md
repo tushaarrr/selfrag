@@ -95,6 +95,7 @@ Training (`train_generator.py`):
 - **Stripped tokens:** the reflection tokens are `additional_special_tokens`, and vLLM's `skip_special_tokens=True` strips them from `.text`. The reference's control-token postprocessing is therefore a no-op, and `match` can't be fooled by `[Continue to Use Evidence]`.
 - **ARC gold keys:** 22 items have numeric gold keys (see prediction 2). 3 items have an option E that the reference drops; none of them has E as the answer.
 - **Empty `input`:** every one of the 145,619 `train.jsonl` rows has an empty `input`, so the reference's `prompt_input` template is never used.
+- **Critic labeling prompts swapped (reference, `data_creation/critic/gpt4_reward/chatgpt_need_retrieval.py:132-141`):** in three-way mode, `process_input` sends a first sentence (no preceding text) to `multi_retrieval_three_way`, whose template has a `Preceding sentences:` field (line 83). It sends a later sentence to `..._no_preceding`, which drops its context. The two keys are swapped. Any reuse of these prompts for Phase 2 must fix this.
 - **Collator bug (ours, now fixed):** `DataCollatorForSeq2Seq` pads `labels` by writing back into the feature dict. With a list dataset, epoch 2 then crashes on a length mismatch. The tiny-model test caught it; the collator now gets copies.
 
 ## Where to run (researched 2026-09-22; T4 figures are estimates, not measurements)
