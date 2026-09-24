@@ -1,0 +1,6 @@
+# Phase 2 teacher env (label_teacher.py). vLLM 0.10.0 is the version shown to serve Qwen3-32B-AWQ on Kaggle 2x T4.
+# Lock with: uv pip compile requirements-teacher.in -o requirements-teacher.txt --python-platform
+#   x86_64-unknown-linux-gnu --python-version 3.11 --exclude-newer 2025-07-25
+# so every dependency is from vLLM 0.10.0's era (released 2025-07-24). Newer transformers/ray/setuptools break it.
+# Separate from requirements.txt: Phase 1 needs vLLM 0.2.6, which cannot load Qwen3. Python 3.11, Linux, CUDA 12.
+vllm==0.10.0
