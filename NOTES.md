@@ -98,7 +98,7 @@ Training (`train_generator.py`):
 - **Critic labeling prompts swapped (reference, `data_creation/critic/gpt4_reward/chatgpt_need_retrieval.py:132-141`):** in three-way mode, `process_input` sends a first sentence (no preceding text) to `multi_retrieval_three_way`, whose template has a `Preceding sentences:` field (line 83). It sends a later sentence to `..._no_preceding`, which drops its context. The two keys are swapped. Any reuse of these prompts for Phase 2 must fix this.
 - **Collator bug (ours, now fixed):** `DataCollatorForSeq2Seq` pads `labels` by writing back into the feature dict. With a list dataset, epoch 2 then crashes on a length mismatch. The tiny-model test caught it; the collator now gets copies.
 
-## Where to run (researched 2026-09-22; T4 figures are estimates, not measurements)
+## Where to run (researched 2026-09-22; Kaggle measured 2026-09-23)
 
 - **This Mac (M4, 24GB, 16GB free disk):**
   - vLLM 0.2.6 is Linux + CUDA only. The eval could only run through a llama.cpp or MLX port, at 2-6 days, with logprobs that differ from the reference setup.
@@ -106,8 +106,17 @@ Training (`train_generator.py`):
   - CPU-only is slower again: torch 2.1 has no fp16 CPU matmul, and fp32 weights (27GB) exceed RAM.
   - The disk can't hold the model plus a conversion.
 - **Kaggle free (2× T4):**
-  - Eval only: `--tp 2`, dtype half, roughly 5-15h across 1-2 resumed 12h sessions (estimate).
-  - The image is Python 3.12, so create a py3.11 env for vllm==0.2.6.
+  - Eval only: `--tp 2`, dtype half. **Measured: all four tasks in about 6.5h, one session.**
+
+    | Task | s/item | Wall clock |
+    |---|---|---|
+    | PopQA | 2.07 | 47 min |
+    | TriviaQA | 2.63 | 5.3 h |
+    | PubHealth | 0.71 | 12 min |
+    | ARC | 0.84 | 16 min |
+
+    Output runs at about 110 tokens/s. Full-vocabulary logprob dicts, not the GPUs, set the pace.
+  - The image is Python 3.12, so `kaggle_phase1.sh` builds a uv-managed Python 3.10 env for vllm==0.2.6.
   - Training doesn't fit: T4 has no bf16 and too little memory.
 - **Rented A100 80GB:**
   - Eval about 1.5-4h; training about 3-6h.
