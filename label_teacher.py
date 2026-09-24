@@ -9,6 +9,7 @@ The gold labels are predictions of Self-RAG's Llama-2-7B critic, which agreed wi
 import argparse
 import json
 import os
+import random
 import re
 import time
 from collections import Counter, defaultdict
@@ -38,15 +39,16 @@ def parse_label(typ, text):
 
 
 def label(llm, examples, out_path, max_tokens=160, max_model_len=4096, chunk=256):
-    """Greedy, non-thinking chat completions. Examples go in template order so prefix caching reuses the
-    few-shot block. Prompts too long for the context window are recorded, not dropped."""
+    """Greedy, non-thinking chat completions, grouped by type and shuffled within it, so a partial run is a
+    random subsample of each finished type. Prompts too long for the window are recorded, not dropped."""
     from vllm import SamplingParams
     if Path(out_path).exists():
         text = Path(out_path).read_bytes()
         Path(out_path).write_bytes(text[:text.rfind(b"\n") + 1])  # drop a line cut off by a kill
     done = set(load_jsonl_by_idx(out_path)) if Path(out_path).exists() else set()
     tok = llm.get_tokenizer()
-    todo = sorted((i for i in range(len(examples)) if i not in done), key=lambda i: examples[i]["type"])
+    todo = sorted((i for i in range(len(examples)) if i not in done),
+                  key=lambda i: (examples[i]["type"], random.Random(i).random()))
     sp = SamplingParams(temperature=0.0, max_tokens=max_tokens)
     t0, n_in, n_out = time.time(), 0, 0
     with open(out_path, "a") as f:
@@ -129,10 +131,11 @@ def main():
     if a.cmd == "report":
         return report(a.out)
     examples = [json.loads(line) for line in open(a.examples)]
-    # Proven on Kaggle 2x T4 (https://www.kaggle.com/code/llkh0a/qwen3-32b-awq). max_model_len must be set:
-    # the model's default of 40,960 tokens needs more KV cache than a T4 has, and vLLM refuses to start.
+    # As run on Kaggle 2x T4 in https://www.kaggle.com/code/llkh0a/qwen3-32b-awq, minus prefix caching: on sm_75
+    # a cache hit compiles a Triton prefill kernel that the pinned triton 3.3.1 cannot build (that notebook
+    # downgraded triton). max_model_len must be set: the default 40,960 needs more KV cache than a T4 has.
     engine = dict(quantization="awq", dtype="half", tensor_parallel_size=a.tp, gpu_memory_utilization=0.95,
-                  enforce_eager=True, max_model_len=4096, enable_prefix_caching=True)
+                  enforce_eager=True, max_model_len=4096)
     write_manifest(Path(a.out).parent / "manifest.json", model=a.model, engine=engine, max_tokens=a.max_tokens,
                    examples=a.examples, examples_sha256=sha256(a.examples), n=len(examples))
     os.environ.setdefault("VLLM_USE_V1", "0")  # vLLM 0.10.0 uses V0 below compute capability 8.0 anyway
