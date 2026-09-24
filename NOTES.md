@@ -125,8 +125,9 @@ Training (`train_generator.py`):
 ## GPU runbook (1 × A100 80GB)
 
 ```bash
-rsync -aL --exclude .venv --exclude data/hf/sms1097 --exclude data/eval_data.zip ./ BOX:selfrag/   # -L resolves the symlinks
-python3.10 -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt && pytest -q
+git clone https://github.com/tushaarrr/selfrag && cd selfrag
+python3.10 -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt pytest jsonlines
+./setup_data.sh && pytest -q                                                   # inputs fetched and hash-checked
 
 # Phase 1: pilot first, then decide
 python eval_selfrag.py generate --task popqa --out runs/released --limit 50    # prints s/item and projected hours
