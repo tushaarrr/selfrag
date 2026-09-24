@@ -90,6 +90,21 @@ Training (`train_generator.py`):
 - **Tokenizer:** the released one, loaded as the slow tokenizer as in the reference. Its ids are asserted as 32000-32015.
 - **Caveat:** the released 7B trained on all rows, our held-out rows included. So its held-out reflection accuracy is an upper reference, not a fair held-out score.
 
+## Phase 2: open-source teacher for critic labels (decided 2026-09-24)
+
+**Teacher: Qwen3-32B-AWQ (Apache-2.0)**, non-thinking mode, greedy decoding, the original four few-shot prompts. It has the strongest judge evidence among open models: LLM-AggreFact 77.6 in thinking mode per arXiv 2510.00880, against 76.2 for GPT-4-turbo on the official board. It fits Kaggle 2× T4 with vLLM 0.10.0 (`requirements-teacher.txt`, locked to that release week). The fallback is Qwen3-14B-AWQ, about 2× faster.
+
+**Pilot:** `critic_data.py pilot` builds 1,952 examples: 250 Retrieve-initial, 250 Retrieve-segment, 500 IsRel, 500 IsSup, 452 IsUse. They are stratified by gold class, and weights restore the natural class mix. `label_teacher.py report` gives per-class agreement with the inline Self-RAG labels.
+
+What the pilot rests on:
+- **Gold is noisy.** The inline labels are Self-RAG's Llama-2-7B critic, not GPT-4. That critic agreed with GPT-4 on 93.8 / 80.2 / 93.5 / 73.5% (Retrieve / IsRel / IsSup / IsUse).
+- **Prompt fix:** the swapped three-way Retrieve prompts are corrected.
+- **Segment-level Retrieve uses proxy evidence:** the most recent earlier passage, because train.jsonl doesn't store the one the critic saw.
+- **IsRel leaves out nq, fever and wow:** `postprocess_data.py` rewrote their labels.
+- **IsUse uses only single `[No Retrieval]` rows:** postprocessing dropped sentences from segmented answers after IsUse was scored. This leaves 52 `[Utility:3]` rows.
+- **About 4% gold noise on Retrieve-initial `[No Retrieval]`:** those rows are really segment-level decisions that train.jsonl can't tell apart.
+- **Prefix caching is off on T4:** the Triton prefill kernel can't be built for sm_75 with triton 3.3.1.
+
 ## Findings while building
 
 - **Stripped tokens:** the reflection tokens are `additional_special_tokens`, and vLLM's `skip_special_tokens=True` strips them from `.text`. The reference's control-token postprocessing is therefore a no-op, and `match` can't be fooled by `[Continue to Use Evidence]`.
