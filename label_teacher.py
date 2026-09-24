@@ -24,12 +24,12 @@ OPTIONS = {"Retrieve_segment": RET, "IsRel": REL, "IsSup": SUP}
 def parse_label(typ, text):
     """The teacher's label, from the part before 'Explanation:' as in the reference postprocess functions.
     Returns the Self-RAG token, or None if no label is found."""
-    head = text.split("Explanation:")[0]
-    if typ == "IsUse":
-        m = re.search(r"[1-5]", head)
-        return f"[Utility:{m.group()}]" if m else None
+    head = re.split(r"explanation", text.split("</think>")[-1], maxsplit=1, flags=re.I)[0]
+    if typ == "IsUse":  # the score after a colon ("Perceived utility: 4"), or a bare leading score
+        m = re.search(r":[\s*\[]*([1-5])\b", head) or re.match(r"[\s*\[]*([1-5])\b", head)
+        return f"[Utility:{m.group(1)}]" if m else None
     if typ == "Retrieve_initial":  # the prompt asks for [Yes]/[No]; combine_chat_gpt_reward.py:141-146
-        m = re.search(r"\b(yes|no)\b", head, re.I)
+        m = re.search(r"\[(yes|no)\]", head, re.I) or re.search(r"\b(yes|no)\b", head, re.I)
         return {"yes": "[Retrieval]", "no": "[No Retrieval]"}[m.group(1).lower()] if m else None
     norm = re.sub(r"\s+", " ", head).lower()
     # earliest mention wins; for a tie at one position, the longer option ("[No Retrieval]" over "[Retrieval]")
@@ -91,6 +91,8 @@ def kappa(pairs):
 def report(labels_path):
     by_type = defaultdict(list)
     for r in load_jsonl_by_idx(labels_path).values():
+        # re-parse the saved text, so a parser fix needs no new GPU run
+        r["label"] = parse_label(r["type"], r["text"]) if r.get("text") is not None else None
         by_type[r["type"]].append(r)
     rows = {}
     for typ, rs in sorted(by_type.items()):

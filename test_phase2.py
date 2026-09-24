@@ -45,8 +45,11 @@ def test_pilot_is_pinned(tmp_path):
             assert ("Preceding sentences: " + e["preceding_sentences"] in e["prompt"]) == bool(e["preceding_sentences"])
         if e["type"] == "IsRel":
             assert e["dataset_name"] not in cd.REL_CONTAMINATED
-        if e["type"] == "IsUse":  # only rows whose answer postprocess_data.py left intact
-            assert e["gold"].startswith("[Utility:") and "[No Retrieval]" not in e["prompt"]
+    rows = {e["line"] for e in exs if e["type"] == "IsUse"}
+    for ln, line in enumerate(open(cd.TRAIN)):  # IsUse rows are single [No Retrieval] rows: answer left intact
+        if ln in rows:
+            segs = cd.parse(json.loads(line)["output"])["segs"]
+            assert [s["retrieve"] for s in segs] == ["[No Retrieval]"]
 
 
 
@@ -62,6 +65,12 @@ def test_pilot_is_pinned(tmp_path):
     ("Retrieve_initial", "[Yes]\nExplanation: No need to", "[Retrieval]"),
     ("Retrieve_initial", "[No]", "[No Retrieval]"),
     ("IsSup", "I cannot tell.", None),
+    ("IsUse", "Perceived utility (1-5): 4\nExplanation: x", "[Utility:4]"),
+    ("IsUse", "**Perceived utility:** 3\n**Explanation**: rated 5 by others", "[Utility:3]"),
+    ("IsUse", "2\nExplanation: x", "[Utility:2]"),
+    ("IsRel", "[Irrelevant]\n**Explanation**: it is not [Relevant].", "[Irrelevant]"),
+    ("Retrieve_initial", "Need retrieval? No doubt: [Yes]", "[Retrieval]"),
+    ("IsRel", "<think>\n[Irrelevant]?\n</think>\n\n[Relevant]", "[Relevant]"),
 ])
 def test_parse_label(typ, text, want):
     assert lt.parse_label(typ, text) == want
