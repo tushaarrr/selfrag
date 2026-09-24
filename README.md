@@ -57,6 +57,20 @@ The released 7B model on 2× T4, all four tasks. The time estimates below are ro
 
 Kaggle's weekly GPU quota is about 30 hours. Training doesn't fit on T4s; see NOTES.md, "Where to run".
 
+## Phase 2 pilot on Kaggle: relabel the critic data with an open model
+
+**Goal:** replace Self-RAG's GPT-4 critic labels with labels from **Qwen3-32B-AWQ** (Apache-2.0), so the critic trained on them can be released. The pilot labels 1,952 examples and measures how often Qwen3 agrees with Self-RAG's original labels, class by class. See NOTES.md, "Phase 2".
+
+1. Start a **new** notebook session (GPU T4 x2, Internet on), so Phase 1's files don't fill the disk.
+2. Put these two lines in a single cell, and run it with **Save Version → Save & Run All**:
+   ```
+   !git -C selfrag pull -q || git clone -q https://github.com/tushaarrr/selfrag
+   !bash selfrag/kaggle_phase2.sh
+   ```
+3. When it finishes, it prints one agreement line per label type and saves `/kaggle/working/phase2.zip`.
+
+`MODEL=Qwen/Qwen3-14B-AWQ bash selfrag/kaggle_phase2.sh` runs the faster fallback teacher.
+
 ## Files
 
 | File | What |
@@ -65,6 +79,7 @@ Kaggle's weekly GPU quota is about 30 hours. Training doesn't fit on T4s; see NO
 | `train_generator.py` | bf16 LoRA trainer with trainable reflection-token rows, per-class reflection accuracy, resume, merge |
 | `kaggle_phase1.sh` | The Kaggle runner above |
 | `setup_data.sh` | Fetches and verifies the inputs |
+| `critic_data.py`, `label_teacher.py`, `kaggle_phase2.sh` | Phase 2: rebuild critic inputs, label them with an open teacher, and run it on Kaggle |
 | `RESULTS.md` | Phase 1 results, retrieval-policy comparison, resolved predictions |
 | `NOTES.md` | Pre-registered predictions, deviations from the original, findings, runbook |
 | `PLAN-revised.md` | The phase plan, with the evidence behind each change |
