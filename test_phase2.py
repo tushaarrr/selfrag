@@ -11,7 +11,7 @@ import pytest
 import critic_data as cd
 import label_teacher as lt
 
-PILOT_MD5 = "5cf314b44c0df0ee2713f58608d56734"  # seed 0, train.jsonl sha256 c58e3687...
+PILOT_MD5 = "6ee637451d9e461d04997b667e57ee2c"  # seed 0, train.jsonl sha256 c58e3687...
 
 
 def test_parse_grammar():
@@ -39,12 +39,14 @@ def test_pilot_is_pinned(tmp_path):
     assert hashlib.md5((tmp_path / "pilot.jsonl").read_bytes()).hexdigest() == PILOT_MD5
     exs = [json.loads(line) for line in open(tmp_path / "pilot.jsonl")]
     assert Counter(e["type"] for e in exs) == {"Retrieve_initial": 250, "Retrieve_segment": 250, "IsRel": 500,
-                                               "IsSup": 500, "IsUse": 500}
+                                               "IsSup": 500, "IsUse": 452}
     for e in exs:
         if e["type"] == "Retrieve_segment":  # the swapped keys (chatgpt_need_retrieval.py:132-141) are fixed
             assert ("Preceding sentences: " + e["preceding_sentences"] in e["prompt"]) == bool(e["preceding_sentences"])
         if e["type"] == "IsRel":
             assert e["dataset_name"] not in cd.REL_CONTAMINATED
+        if e["type"] == "IsUse":  # only rows whose answer postprocess_data.py left intact
+            assert e["gold"].startswith("[Utility:") and "[No Retrieval]" not in e["prompt"]
 
 
 

@@ -4,7 +4,7 @@ train.jsonl carries every instruction, passage and output inline, with the Self-
 We split each output into segments, rebuild the four critic input types (Retrieve, IsRel, IsSup, IsUse) and
 render them with the reference GPT-4 prompts, so an open-source teacher can relabel them.
 
-  python critic_data.py pilot --out runs/phase2/pilot.jsonl    # 2,000 examples, stratified by gold class
+  python critic_data.py pilot --out runs/phase2/pilot.jsonl    # 1,952 examples, stratified by gold class
 
 Row grammar (reference/self-rag/data_creation/generator/postprocess_data.py:223,333,336,341,344,348):
   row  := lead? seg+ [Utility:k]
@@ -137,8 +137,10 @@ def candidates(row):
     p = parse(out)
     segs = p["segs"]
     single_noret = len(segs) == 1 and segs[0]["retrieve"] == "[No Retrieval]" and not p["lead"].strip()
-    # fever outputs are true/false and had [Utility:1] forced to 5 (postprocess_data.py:211-212)
-    if p["utility"] and segs and plain_output(out).strip().lower() not in ("true", "false"):
+    # IsUse was scored on the critic's original answer, but postprocess_data.py drops sentences from segmented
+    # rows (:246-248, :299-300); only single [No Retrieval] rows keep it intact (:223). fever outputs are
+    # true/false and had [Utility:1] forced to 5 (:211-212).
+    if p["utility"] and single_noret and plain_output(out).strip().lower() not in ("true", "false"):
         yield "IsUse", p["utility"], -1
     for i, s in enumerate(segs):
         initial = i == 0 and not p["lead"].strip()
