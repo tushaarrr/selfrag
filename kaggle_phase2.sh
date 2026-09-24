@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Phase 2 pilot on a free Kaggle notebook (Accelerator: GPU T4 x2, Internet: on). From a code cell:
-#   !git -C selfrag pull -q || git clone -q https://github.com/tushaarrr/selfrag
+#   !git -C selfrag pull -q 2>/dev/null || git clone -q https://github.com/tushaarrr/selfrag
 #   !bash selfrag/kaggle_phase2.sh
 # Labels the 1,952-example pilot with an open teacher and reports agreement with Self-RAG's labels.
 set -euo pipefail

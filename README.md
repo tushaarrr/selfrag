@@ -43,7 +43,7 @@ The released 7B model on 2× T4, all four tasks. The time estimates below are ro
 1. On kaggle.com: **Create → New Notebook**. In the right panel, set **Accelerator = GPU T4 x2** and **Internet = On** (Internet needs a phone-verified account).
 2. **Pilot** (about 20-30 minutes). Run this in a cell:
    ```
-   !git -C selfrag pull -q || git clone -q https://github.com/tushaarrr/selfrag
+   !git -C selfrag pull -q 2>/dev/null || git clone -q https://github.com/tushaarrr/selfrag
    !LIMIT=50 TASKS=popqa bash selfrag/kaggle_phase1.sh
    ```
    The first line updates an existing copy, or clones it the first time. Re-run both lines after any fix to the repo.
@@ -64,7 +64,7 @@ Kaggle's weekly GPU quota is about 30 hours. Training doesn't fit on T4s; see NO
 1. Start a **new** notebook session (GPU T4 x2, Internet on), so Phase 1's files don't fill the disk.
 2. Put these two lines in a single cell, and run it with **Save Version → Save & Run All**:
    ```
-   !git -C selfrag pull -q || git clone -q https://github.com/tushaarrr/selfrag
+   !git -C selfrag pull -q 2>/dev/null || git clone -q https://github.com/tushaarrr/selfrag
    !bash selfrag/kaggle_phase2.sh
    ```
 3. When it finishes, it prints one agreement line per label type and saves `/kaggle/working/phase2.zip`.
